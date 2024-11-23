@@ -1,18 +1,14 @@
-import dotenvx from "@dotenvx/dotenvx"
-import { ReviewService } from "#service/review.js";
-import mongoose from "mongoose";
-
-import app from "./server";
-
+import dotenvx from "@dotenvx/dotenvx";
 dotenvx.config();
 
-await mongoose.connect(process.env.MONGODB_URI as string);
+(async () => {
+  const { default: app } = await import("./server");
+  const mongoose = await import("mongoose");
 
-const PORT = 8080;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+  await mongoose.connect(process.env.MONGODB_URI as string);
 
-// ReviewService 사용
-const rs = new ReviewService();
-rs.generateReview({ assignmentId: "assignment" });
+  const PORT = 8080;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+})();
