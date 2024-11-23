@@ -4,9 +4,26 @@
   "description": "Assignment Review Instance Library for ReQuest",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx watch --include 'src/**/*' src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
+  "type": "module",
   "keywords": [],
   "author": "EATSTEAK",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.24.5",
+    "express": "^4.21.1",
+    "mongoose": "^8.8.2",
+    "openai": "^4.73.0",
+    "tree-sitter": "^0.22.1",
+    "tree-sitter-javascript": "^0.23.1",
+    "tsconfig-paths": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
 }

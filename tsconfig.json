@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "baseUrl": "./", // 프로젝트의 루트 경로 설정
+    "paths": {
+      "#global/*": ["src/global/*"],
+      "#service/*": ["src/service/*"], // #service 별칭 추가
+      "#route/*": ["src/route/*"] // #route 별칭 추가
+    },
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
