@@ -10,8 +10,7 @@ router.post(
     "/",
     AsyncWrapper(async (req: Request, res: Response) => {
         const { assignmentId , criteria, stream } = req.body;
-
-
+        //criteria: "accuracy" | "logic" | "efficiency" | "consistency";
 
         if (stream === true) {
             res.setHeader('Content-Type', 'text/event-stream');

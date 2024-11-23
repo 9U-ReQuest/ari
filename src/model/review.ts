@@ -6,6 +6,7 @@ export type TReviewDetail = {
     flag?: boolean;
     filePath: string;
     func?: string;
+    category?: string;
 };
 
 // 전체 문서의 타입 정의

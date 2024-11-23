@@ -21,7 +21,8 @@ export type TReview = {
     review: string,
     flag?: boolean,
     filePath: string,
-    func?: string
+    func?: string,
+    category?: string;
 }
 
 export class ReviewService {
@@ -57,8 +58,9 @@ export class ReviewService {
         const reviewResults: TReview[] = [];
 
         // 파일별로 평가 수행
-        for (const filePath of extractFileTree) {
-            const codeFile = fs.readFileSync(filePath, "utf-8");
+        for (const extFilePath of extractFileTree) {
+            const codeFile = fs.readFileSync(extFilePath, "utf-8");
+            const filePath = extFilePath.substring(`${process.cwd()}/src/project`.length);
 
             const args = { filePath, codeFile, requirements, fileTreeStr };
 
@@ -71,9 +73,11 @@ export class ReviewService {
                 filePath,
             };
 
+
+
             reviewResults.push(reviewWithFilePath);
             console.log(reviewWithFilePath);
-            const reviewDoc = await this.reviewRepository.addReviewToCriteria(assignmentId, criteria, reviewWithFilePath);
+            await this.reviewRepository.addReviewToCriteria(assignmentId, criteria, reviewWithFilePath);
 
             if (stream === true && emitter) {
                 emitter.emit("data", reviewWithFilePath);
