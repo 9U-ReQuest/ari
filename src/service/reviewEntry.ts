@@ -1,5 +1,6 @@
 import LLMService from "#service/llmService.js";
 import ReviewEntryRepository from "#repository/reviewEntry";
+import ReviewRepository from "#repository/review";
 import { promptFactory } from "#service/promptFactory.js";
 import { EventEmitter } from "events";
 import { extractFilePaths, getProjectFileTree } from "#util/file";
@@ -18,10 +19,12 @@ export type TReviewEntry = {
 
 export class ReviewEntryService {
     private reviewEntryRepository: ReviewEntryRepository;
+    private reviewRepository: ReviewRepository;
     private llmService: LLMService;
 
     constructor() {
         this.reviewEntryRepository = new ReviewEntryRepository();
+        this.reviewRepository = new ReviewRepository(); // 초기화
         this.llmService = new LLMService();
     }
 
@@ -36,6 +39,9 @@ export class ReviewEntryService {
         stream?: boolean;
     }): Promise<void> => {
         console.log(`Generating review for submissionId: ${submissionId} with scenario: ${scenario}`);
+
+        // 리뷰 상태를 "reviewing"으로 업데이트
+        await this.reviewRepository.updateStatus(submissionId, "reviewing");
 
         // 프로젝트 디렉터리 및 파일 목록 가져오기
         const projectDirectory = path.join(process.cwd(), "src/project");
@@ -52,9 +58,10 @@ export class ReviewEntryService {
 
             // 시나리오 기반으로 prompt 생성
             const prompt = promptFactory(scenario, [args]);
-            const llmResponse  = await this.llmService.query(prompt);
+            const llmResponse = await this.llmService.query(prompt);
+
             if (llmResponse === "") {
-                continue
+                continue;
             }
 
             if (typeof llmResponse === "string") {
@@ -74,10 +81,11 @@ export class ReviewEntryService {
             // 리뷰 엔트리 저장
             await this.reviewEntryRepository.saveReviewEntry(reviewEntry);
         }
+
+        // 리뷰 상태를 "done"으로 업데이트
+        await this.reviewRepository.updateStatus(submissionId, "done");
     };
 }
-
-
 
 const requirements =
     `

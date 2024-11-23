@@ -1,12 +1,12 @@
 import express, {json} from "express";
-import summary from "#route/summary";
 import reviewEntry from "#route/reviewEntry";
+import review from "#route/review";
 
 const app = express();
 
 app.use(json());
 
 app.use("/api/review-entry", reviewEntry);
-app.use("/api/summary", summary)
+app.use("/api/review", review)
 
 export default app;
