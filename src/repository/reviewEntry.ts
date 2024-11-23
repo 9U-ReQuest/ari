@@ -6,4 +6,13 @@ export default class ReviewEntryRepository {
         const entry = new ReviewEntryModel(reviewEntry);
         return entry.save();
     }
+
+    async getEntriesBySubmissionAndScenario(submissionId: string, scenario: string): Promise<{ name: string; message: string }[]> {
+        const entries = await ReviewEntryModel.find({ submissionId, scenario }).lean();
+
+        return entries.map(entry => ({
+            name: entry.name,
+            message: entry.message,
+        }));
+    }
 }

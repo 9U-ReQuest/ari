@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 // TReview 타입 정의
 export type TReview = {
     id: string; // 사용자 정의 ID
-    status: "done" | "reviewing" | "pending"; // 상태명 영어로 표준화
+    status: "DONE" | "REVIEWING" | "PENDING";
     summary: string;
     scores: {
         accuracy?: number; // undefined 허용
@@ -16,7 +16,7 @@ export type TReview = {
 // MongoDB 문서 타입 정의
 export interface IReview extends Document {
     id: string; // 사용자 정의 필드
-    status: "done" | "reviewing" | "pending";
+    status: "DONE" | "REVIEWING" | "PENDING";
     summary: string;
     scores: {
         accuracy?: number;
@@ -33,7 +33,7 @@ export const mReviewSchema = new Schema<IReview>({
     status: {
         type: String,
         required: true,
-        enum: ["done", "reviewing", "pending"], // 허용 값 제한
+        enum: ["DONE", "REVIEWING" , "PENDING"], // 허용 값 제한
     },
     summary: { type: String, required: true },
     scores: {

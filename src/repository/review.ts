@@ -8,14 +8,13 @@ export default class ReviewRepository {
     }
 
     // 2. 특정 스코어만 업데이트하는 기능
-    async updateScore(id: string, scores: Partial<TReview["scores"]>): Promise<TReview | null> {
-        return ReviewModel
-            .findOneAndUpdate(
-                { id },
-                { $set: { scores } },
-                { new: true }
-            )
-            .lean() as Promise<TReview | null>;
+    async updateScore(id: string, scenario: keyof TReview["scores"], score: number): Promise<TReview | null> {
+        // 동적으로 특정 시나리오의 스코어를 업데이트
+        return ReviewModel.findOneAndUpdate(
+            { id },
+            { $set: { [`scores.${scenario}`]: score } }, // 동적 경로 설정
+            { new: true } // 업데이트된 문서 반환
+        ).lean() as Promise<TReview | null>;
     }
 
     // 3. 상태만 업데이트하는 기능

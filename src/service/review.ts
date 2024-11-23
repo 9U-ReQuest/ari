@@ -22,7 +22,7 @@ export default class ReviewService {
         if (!existingReview) {
             await this.reviewRepository.createReview({
                 id: submissionId,
-                status: "pending", // 초기 상태
+                status: "PENDING", // 초기 상태
                 summary: "default", // 요약은 비워둠
                 scores: {
                     accuracy: 0,
@@ -54,6 +54,22 @@ export default class ReviewService {
         await this.reviewRepository.updateSummary(submissionId, summary);
 
         return summary;
+    };
+
+    checkReviewDone = async (submissionId: string): Promise<boolean> => {
+        const review = await this.reviewRepository.findBySubmissionId(submissionId);
+
+        if (!review) {
+            return false; // 리뷰 문서가 없으면 false
+        }
+
+        const { summary, scores } = review;
+
+        // summary가 비어있지 않고 scores의 모든 값이 0이 아닌 경우 true
+        const isSummaryValid = summary.trim() !== "";
+        const areScoresValid = Object.values(scores).every((value) => value !== 0);
+
+        return isSummaryValid && areScoresValid;
     };
 }
 

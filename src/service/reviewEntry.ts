@@ -7,6 +7,7 @@ import { extractFilePaths, getProjectFileTree } from "#util/file";
 import HttpError from "#global/error/http.error";
 import path from "path";
 import fs from "fs";
+import ReviewService from "#service/review";
 
 export type TReviewEntry = {
     submissionId: string;
@@ -20,12 +21,14 @@ export type TReviewEntry = {
 export class ReviewEntryService {
     private reviewEntryRepository: ReviewEntryRepository;
     private reviewRepository: ReviewRepository;
+    private reviewService: ReviewService;
     private llmService: LLMService;
 
     constructor() {
         this.reviewEntryRepository = new ReviewEntryRepository();
         this.reviewRepository = new ReviewRepository(); // 초기화
         this.llmService = new LLMService();
+        this.reviewService = new ReviewService();
     }
 
     // AI 리뷰 생성 메서드 (public)
@@ -34,14 +37,14 @@ export class ReviewEntryService {
                                        scenario,
                                    }: {
         submissionId: string;
-        scenario: string;
+        scenario: "accuracy" | "logic" | "efficiency" | "consistency";
         emitter?: EventEmitter;
         stream?: boolean;
     }): Promise<void> => {
         console.log(`Generating review for submissionId: ${submissionId} with scenario: ${scenario}`);
 
         // 리뷰 상태를 "reviewing"으로 업데이트
-        await this.reviewRepository.updateStatus(submissionId, "reviewing");
+        await this.reviewRepository.updateStatus(submissionId, "REVIEWING");
 
         // 프로젝트 디렉터리 및 파일 목록 가져오기
         const projectDirectory = path.join(process.cwd(), "src/project");
@@ -82,8 +85,23 @@ export class ReviewEntryService {
             await this.reviewEntryRepository.saveReviewEntry(reviewEntry);
         }
 
-        // 리뷰 상태를 "done"으로 업데이트
-        await this.reviewRepository.updateStatus(submissionId, "done");
+        const entries = await this.reviewEntryRepository.getEntriesBySubmissionAndScenario(submissionId, scenario);
+        const joinedEntries = entries.map(entry => JSON.stringify(entry)).join("\n\n");
+
+        console.log(joinedEntries);
+
+        const { positive, negative } = await this.llmService.gradeScenario(joinedEntries);
+
+        const total = positive + negative;
+        const score = total > 0 ? positive / total : 0;
+        console.log(positive, negative, score);
+
+        await this.reviewRepository.updateScore(submissionId, scenario, score * 100);
+
+        const isDone = await this.reviewService.checkReviewDone(submissionId);
+        if (isDone) {
+            await this.reviewRepository.updateStatus(submissionId, "DONE");
+        }
     };
 }
 
