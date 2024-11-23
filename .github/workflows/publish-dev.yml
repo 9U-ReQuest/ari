@@ -41,7 +41,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: apps/${{ matrix.app }}/Dockerfile
+          file: Dockerfile
           push: true
           tags: ${{ fromJson(env.ECR_OUTPUTS).repository_url.value }}:${{ matrix.app }}-${{ github.sha }}
           cache-from: type=gha
