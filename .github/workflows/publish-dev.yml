@@ -75,7 +75,7 @@ jobs:
       - name: Create ari dotenv
         working-directory: ./codedeploy
         run: |
-          touch .env.gasi
+          touch .env.ari
           echo "CHANNEL=${{ env.CHANNEL }}" >> .env.ari
           echo "DATABASE_URI=${{ secrets.DATABASE_URI }}" >> .env.ari
           echo "OPEN_AI_SECRET=${{ secrets.OPEN_AI_SECRET }}" >> .env.ari
