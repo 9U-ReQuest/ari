@@ -8,6 +8,7 @@ import HttpError from "#global/error/http.error";
 import path from "path";
 import fs from "fs";
 import ReviewService from "#service/review";
+import SubmissionRepository from "#repository/submission";
 
 export type TReviewEntry = {
     submissionId: string;
@@ -23,12 +24,14 @@ export class ReviewEntryService {
     private reviewRepository: ReviewRepository;
     private reviewService: ReviewService;
     private llmService: LLMService;
+    private submissionRepository: SubmissionRepository
 
     constructor() {
         this.reviewEntryRepository = new ReviewEntryRepository();
         this.reviewRepository = new ReviewRepository(); // 초기화
         this.llmService = new LLMService();
         this.reviewService = new ReviewService();
+        this.submissionRepository = new SubmissionRepository();
     }
 
     // AI 리뷰 생성 메서드 (public)
@@ -45,6 +48,7 @@ export class ReviewEntryService {
 
         // 리뷰 상태를 "reviewing"으로 업데이트
         await this.reviewRepository.updateStatus(submissionId, "REVIEWING");
+        await this.submissionRepository.updateStatusById(submissionId, "REVIEWING");
 
         // 프로젝트 디렉터리 및 파일 목록 가져오기
         const projectDirectory = path.join(process.cwd(), "src/project");
@@ -101,6 +105,7 @@ export class ReviewEntryService {
         const isDone = await this.reviewService.checkReviewDone(submissionId);
         if (isDone) {
             await this.reviewRepository.updateStatus(submissionId, "DONE");
+            await this.submissionRepository.updateStatusById(submissionId, "REVIEWED");
         }
     };
 }
