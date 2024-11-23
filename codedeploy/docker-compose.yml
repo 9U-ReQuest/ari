@@ -1,0 +1,8 @@
+name: request-ari-${CHANNEL}
+services:
+  ari:
+    image: ${ECR_REPOSITORY_URL}:${ARI_IMAGE_TAG}
+    ports:
+      - "80:8080"
+    container_name: ari.request.internal
+    env_file: ./.env.ari

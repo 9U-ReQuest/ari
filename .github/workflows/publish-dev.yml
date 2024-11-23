@@ -1,0 +1,102 @@
+name: Publish ari (dev)
+
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch:
+env:
+  CHANNEL: dev
+  AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
+  ECR_OUTPUTS: ${{ secrets.container_registry_outputs_dev }}
+  CODEDEPLOY_OUTPUTS: ${{ secrets.codedeploy_outputs_dev }}
+
+jobs:
+  docker-build:
+    name: Build Docker images
+    if: github.repository == '9U-ReQuest/ari'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [ "cari" ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/${{ matrix.app }}/Dockerfile
+          push: true
+          tags: ${{ fromJson(env.ECR_OUTPUTS).repository_url.value }}:${{ matrix.app }}-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+  codedeploy:
+    name: Deploy to CodeDeploy
+    if: github.repository == '9U-ReQuest/ari'
+    needs: docker-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Create dotenv
+        working-directory: ./codedeploy
+        run: |
+          touch .env
+          echo "CHANNEL=${{ env.CHANNEL }}" >> .env
+          echo "ECR_REPOSITORY_URL=${{ fromJson(env.ECR_OUTPUTS).repository_url.value }}" >> .env
+          echo "ARI_IMAGE_TAG=ari-${{ github.sha }}" >> .env
+
+      - name: Create ari dotenv
+        working-directory: ./codedeploy
+        run: |
+          touch .env.gasi
+          echo "CHANNEL=${{ env.CHANNEL }}" >> .env.ari
+          echo "DATABASE_URI=${{ secrets.DATABASE_URI }}" >> .env.ari
+          echo "OPEN_AI_SECRET=${{ secrets.OPEN_AI_SECRET }}" >> .env.ari
+
+
+      - name: Create deployment archive
+        working-directory: ./codedeploy
+        run: |
+          mkdir scripts
+          touch scripts/deploy.sh
+          echo "aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ fromJson(env.ECR_OUTPUTS).repository_url.value }}" >> scripts/deploy.sh
+          echo "docker image prune -a -f" >> scripts/deploy.sh
+          echo "docker-compose -f /var/deployment/docker-compose.yml up -d" >> scripts/deploy.sh
+          zip -r ${{ github.sha }}.zip .
+          aws s3 cp ${{ github.sha }}.zip s3://${{ fromJson(env.CODEDEPLOY_OUTPUTS).bucket.value }}/${{ github.sha }}.zip
+
+
+      - name: Deploy to CodeDeploy
+        run: |
+          aws deploy create-deployment \
+            --application-name ${{ fromJson(env.CODEDEPLOY_OUTPUTS).name.value }} \
+            --deployment-group-name ${{ fromJson(env.CODEDEPLOY_OUTPUTS).cari_group_name.value }} \
+            --deployment-config-name CodeDeployDefault.OneAtATime \
+            --s3-location bucket=${{ fromJson(env.CODEDEPLOY_OUTPUTS).bucket.value }},bundleType=zip,key=${{ github.sha }}.zip
