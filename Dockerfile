@@ -15,12 +15,11 @@ WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-COPY --from=builder /app/dist ./dist
-COPY package.json pnpm-lock.yaml ./
+COPY --from=builder /app ./
 
 # Install only production dependencies
-RUN pnpm install --prod
+RUN pnpm install
 
 EXPOSE 8080
 
-CMD ["node", "dist/index.js"]
+CMD ["pnpm", "start"]
