@@ -8,6 +8,7 @@
       "#route/*": ["src/route/*"],// #route 별칭 추가
       "#repository/*": ["src/repository/*"], // #repository 별칭 추가
       "#model/*": ["src/model/*"], // #model 별칭 추가
+      "#util/*": ["src/util/*"], // #util 별칭 추가
     },
     "target": "ES2022",
     "module": "ESNext",

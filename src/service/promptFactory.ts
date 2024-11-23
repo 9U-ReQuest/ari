@@ -146,7 +146,35 @@ Provide feedback in Korean.
 # codeFile
 {:codeFile}
 
-# review`
+# review`,
+
+"summary":
+`
+You are a programming project evaluator.
+
+코드에 대한 전체적인 평가를 제시해야합니다.
+
+평가를 하는 배경은 요구사항을 지키기 위한 사용자의 구현방법입니다.
+(사용한 라이브러리, 데이터베이스 구조, 디렉토리 아키텍처, 의존성 처리, 알고리즘, 코드 수명, 생산성 등..)
+
+사용자가 잘한 점과 부족한 점을 피드백해주어야합니다.
+잘한점과 부족한 점을 꼽을 때는 정확하게 어떤 모듈의 어떤 함수인지 지정하여 말해야합니다.
+
+당신의 피드백으로 인해, 사용자의 이후 개발 역량에 크게 영향을 받을 수 있기에,
+정확하고, 전체적인 넓은 시야로 판단을 해주어야합니다.
+
+응답은 마크다운으로 구조화하여 응답하세요.
+한글을 사용합니다.
+
+# requirements
+{:requirements}
+
+# codeFiles
+{:codeFiles}
+
+# review
+
+`
     };
 
     const template = prompts[type];
