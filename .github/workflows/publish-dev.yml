@@ -77,7 +77,7 @@ jobs:
         run: |
           touch .env.ari
           echo "CHANNEL=${{ env.CHANNEL }}" >> .env.ari
-          echo "DATABASE_URI=${{ secrets.DATABASE_URI }}" >> .env.ari
+          echo "MONGODB_URI=${{ secrets.DATABASE_URI }}" >> .env.ari
           echo "OPEN_AI_SECRET=${{ secrets.OPEN_AI_SECRET }}" >> .env.ari
 
 
